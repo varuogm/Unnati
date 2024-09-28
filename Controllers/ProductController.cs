@@ -7,6 +7,8 @@
     using Microsoft.EntityFrameworkCore;
     using System.IO;
     using Microsoft.AspNetCore.Authorization;
+    using System.Linq;
+    using System.IO.Compression;
 
     [Authorize]
     [ApiController]
@@ -23,79 +25,7 @@
             this._context = context;
             _logger = logger;
         }
-
-        [HttpPut("UploadImage")]
-        public async Task<IActionResult> UploadImage(IFormFile formFile, string productcode)
-        {
-            APIResponse response = new APIResponse();
-            try
-            {
-                string Filepath = GetFilepath(productcode);
-                if (!System.IO.Directory.Exists(Filepath))
-                {
-                    System.IO.Directory.CreateDirectory(Filepath);
-                }
-
-                string imagepath = Filepath + "\\" + productcode + ".png";
-
-                if (System.IO.File.Exists(imagepath))
-                {
-                    System.IO.File.Delete(imagepath);
-                }
-
-                using (FileStream stream = System.IO.File.Create(imagepath))
-                {
-                    await formFile.CopyToAsync(stream);
-                    response.ResponseCode = 200;
-                    response.Result = "Image Uploaded Successfully";
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Message = ex.Message;
-                response.ResponseCode = 500;
-                _logger.LogError(ex.Message,ex);
-            }
-            return Ok(response);
-        }
-
-        [HttpPut("MultiUploadImage")]
-        public async Task<IActionResult> MultiImageUpload(IFormFileCollection filecollection, string productcode)
-        {
-            APIResponse response = new APIResponse();
-            int passcount = 0; int errorcount = 0;
-            try
-            {
-                string Filepath = GetFilepath(productcode);
-                if (!System.IO.Directory.Exists(Filepath))
-                {
-                    System.IO.Directory.CreateDirectory(Filepath);
-                }
-                foreach (var file in filecollection)
-                {
-                    string imagepath = Filepath + "\\" + file.FileName;
-                    if (System.IO.File.Exists(imagepath))
-                    {
-                        System.IO.File.Delete(imagepath);
-                    }
-                    using (FileStream stream = System.IO.File.Create(imagepath))
-                    {
-                        await file.CopyToAsync(stream);
-                        passcount++;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                errorcount++;
-                response.Message = ex.Message;
-                _logger.LogError(ex.Message, ex);
-            }
-            response.ResponseCode = 200;
-            response.Result = passcount + " Files uploaded & " + errorcount + " files failed";
-            return Ok(response);
-        }
-
+        
         [HttpGet("GetImage")]
         public async Task<IActionResult> GetImage(string productcode)
         {
@@ -133,7 +63,7 @@
             {
                 string Filepath = GetFilepath(productcode);
 
-                if (System.IO.Directory.Exists(Filepath))
+                if (Directory.Exists(Filepath))
                 {
                     DirectoryInfo directoryInfo = new DirectoryInfo(Filepath);
                     FileInfo[] fileInfos = directoryInfo.GetFiles();
@@ -158,7 +88,79 @@
 
         }
 
-        [HttpGet("download")]
+        [HttpPut("UploadImage")]
+        public async Task<IActionResult> UploadImage(IFormFile formFile, string productcode)
+        {
+            APIResponse response = new APIResponse();
+            try
+            {
+                string Filepath = GetFilepath(productcode);
+                if (!Directory.Exists(Filepath))
+                {
+                    Directory.CreateDirectory(Filepath);
+                }
+
+                string imagepath = Filepath + "\\" + productcode + ".png";
+
+                if (System.IO.File.Exists(imagepath))
+                {
+                    System.IO.File.Delete(imagepath);
+                }
+
+                using (FileStream stream = System.IO.File.Create(imagepath))
+                {
+                    await formFile.CopyToAsync(stream);
+                    response.ResponseCode = 200;
+                    response.Result = "Image Uploaded Successfully";
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Message = ex.Message;
+                response.ResponseCode = 500;
+                _logger.LogError(ex.Message,ex);
+            }
+            return Ok(response);
+        }
+
+        [HttpPut("MultiUploadImage")]
+        public async Task<IActionResult> MultiImageUpload(IFormFileCollection filecollection, string productcode)
+        {
+            APIResponse response = new APIResponse();
+            int passcount = 0; int errorcount = 0;
+            try
+            {
+                string Filepath = GetFilepath(productcode);
+                if (!Directory.Exists(Filepath))
+                {
+                    Directory.CreateDirectory(Filepath);
+                }
+                foreach (var file in filecollection)
+                {
+                    string imagepath = Filepath + "\\" + file.FileName;
+                    if (System.IO.File.Exists(imagepath))
+                    {
+                        System.IO.File.Delete(imagepath);
+                    }
+                    using (FileStream stream = System.IO.File.Create(imagepath))
+                    {
+                        await file.CopyToAsync(stream);
+                        passcount++;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                errorcount++;
+                response.Message = ex.Message;
+                _logger.LogError(ex.Message, ex);
+            }
+            response.ResponseCode = 200;
+            response.Result = passcount + " Files uploaded & " + errorcount + " files failed";
+            return Ok(response);
+        }
+
+        [HttpGet("Download")]
         public async Task<IActionResult> Download(string productcode)
         {
             try
@@ -187,7 +189,7 @@
             }
         }
 
-        [HttpGet("remove")]
+        [HttpGet("Remove")]
         public async Task<IActionResult> Remove(string productcode)
         {
             try
@@ -212,15 +214,13 @@
 
         }
 
-        [HttpGet("multiremove")]
-        public async Task<IActionResult> multiremove(string productcode)
+        [HttpGet("Multiremove")]
+        public async Task<IActionResult> MultipleRemove(string productcode)
         {
-            // string Imageurl = string.Empty;
-            //string hosturl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
             try
             {
                 string Filepath = GetFilepath(productcode);
-                if (System.IO.Directory.Exists(Filepath))
+                if (Directory.Exists(Filepath))
                 {
                     DirectoryInfo directoryInfo = new DirectoryInfo(Filepath);
                     FileInfo[] fileInfos = directoryInfo.GetFiles();
@@ -237,12 +237,13 @@
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message, ex);
                 return NotFound();
             }
         }
 
         [HttpPut("DBMultiUploadImage")]
-        public async Task<IActionResult> DBMultiUploadImage(IFormFileCollection filecollection, string productcode)
+        public async Task<IActionResult> DBMultipleUploadImage(IFormFileCollection filecollection, string productcode)
         {
             APIResponse response = new APIResponse();
             int passcount = 0; int errorcount = 0;
@@ -267,6 +268,7 @@
             {
                 errorcount++;
                 response.Message = ex.Message;
+                _logger.LogError(ex.Message, ex);
             }
             response.ResponseCode = 200;
             response.Result = passcount + " Files uploaded & " + errorcount + " files failed";
@@ -276,10 +278,9 @@
 
 
         [HttpGet("GetDBMultiImage")]
-        public async Task<IActionResult> GetDBMultiImage(string productcode)
+        public async Task<IActionResult> GetDBMultipleImage(string productcode)
         {
             List<string> Imageurl = new List<string>();
-            //string hosturl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
             try
             {
                 var _productimage = this._context.TblProductimages.Where(item => item.Productcode == productcode).ToList();
@@ -295,26 +296,45 @@
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message, ex);
+                return NotFound();
             }
             return Ok(Imageurl);
 
         }
 
 
-        [HttpGet("dbdownload")]
+        [HttpGet("DBDownload")]
         public async Task<IActionResult> dbdownload(string productcode)
         {
             try
             {
-                var _productimage = await this._context.TblProductimages.FirstOrDefaultAsync(item => item.Productcode == productcode);
-                if (_productimage != null)
-                    return File(_productimage.Productimage, "image/png", productcode + ".png");
-                
+                var _productimages = await this._context.TblProductimages.Where(item => item.Productcode == productcode).ToListAsync();
+
+                if (_productimages != null && _productimages.Count > 0)
+                {
+                    var archiveStream = new MemoryStream();
+                    using (var archive = new ZipArchive(archiveStream, ZipArchiveMode.Create, true))
+                    {
+                        foreach (var image in _productimages)
+                        {
+                            var entry = archive.CreateEntry(image.Productcode + ".png");
+                            using (var entryStream = entry.Open())
+                            {
+                                entryStream.Write(buffer: image.Productimage, 0, count: image.Productimage.Length);
+                            }
+                        }
+                    }
+                    archiveStream.Position = 0;
+
+                    return File(archiveStream, "application/zip", productcode + ".zip");
+                }
                 return NotFound();
                 
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message, ex);
                 return NotFound();
             }
         }

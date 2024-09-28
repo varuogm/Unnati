@@ -1,16 +1,18 @@
+using Serilog;
 using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using Unnati.Container;
+using System.Text;
 using Unnati.Helper;
 using Unnati.Repos;
 using Unnati.Service;
-using Serilog;
+using Unnati.Models;
 using Serilog.Events;
-using Microsoft.AspNetCore;
-using Microsoft.Extensions.DependencyInjection;
+using Unnati.Container;
 using AspNetCoreRateLimit;
-using System.Threading.RateLimiting;
+using Microsoft.OpenApi.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -31,14 +33,48 @@ try
     builder.Services.AddControllers();
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
+
+    //Swagger
+    builder.Services.AddSwaggerGen(item =>
+    {
+        item.SwaggerDoc("v1", new OpenApiInfo { Title = "Unnati", Version = "v1" });
+        item.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            In = ParameterLocation.Header,
+            Description = "Please enter token",
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            BearerFormat = "JWT",
+            Scheme = "bearer"
+        });
+
+        item.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type=ReferenceType.SecurityScheme,
+                        Id="Bearer"
+                    }
+                },
+                new string[]{}
+            }
+        });
+        });
+
+    //Register 
     builder.Services.AddTransient<ICustomerService, CustomerService>();
+    builder.Services.AddTransient<IRefreshHandler, RefreshHandler>();
+
+    //Database connection
     builder.Services.AddDbContext<UnnatiContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionString("sqlDBCon")));
 
     //Authentication 
     builder.Services.AddAuthentication("BasicAuthentication")
         .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
-  
+
     //Automapper configuration
     var automapper = new MapperConfiguration(item => item.AddProfile(new AutomapperHandler()));
     IMapper mapper = automapper.CreateMapper();
@@ -62,13 +98,36 @@ try
 
     builder.Host.UseSerilog();
 
+    //JWT Auth
+    var _authkey = builder.Configuration.GetValue<string>("JwtSettings:securitykey");
+    var _jwtsetting = builder.Configuration.GetSection("JwtSettings");
+    builder.Services.Configure<JwtSettings>(_jwtsetting);
+
+    builder.Services.AddAuthentication(item =>
+    {
+        item.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        item.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    }).AddJwtBearer(item =>
+    {
+        item.RequireHttpsMetadata = true;
+        item.SaveToken = true;
+        item.TokenValidationParameters = new TokenValidationParameters()
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authkey)),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
     //Cors configure
     builder.Services.AddCors(p => p.AddPolicy("corspolicy1", build =>
-    {
-        build.WithOrigins("https://localhost:7139")
-        .AllowAnyMethod()
-        .AllowAnyHeader();
-    }));
+        {
+            build.WithOrigins("https://localhost:7139")
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+        }));
 
     builder.Services.AddCors(p => p.AddPolicy("corspolicy", build =>
     {
@@ -77,24 +136,22 @@ try
         AllowAnyHeader();
     }));
 
-
     var app = builder.Build();
 
     // Configure the HTTP request pipeline.
     //if (app.Environment.IsDevelopment())
     //{
-        app.UseSwagger();
-        app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI();
     //}
 
-
-    app.UseIpRateLimiting();
+    app.UseHttpsRedirection();
 
     app.UseStaticFiles();
 
     app.UseCors();
 
-    app.UseHttpsRedirection();
+    app.UseIpRateLimiting();
 
     app.UseAuthentication();
 

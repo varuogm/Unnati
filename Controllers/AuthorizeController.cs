@@ -43,7 +43,7 @@ namespace Unnati.Controllers
                         new Claim(ClaimTypes.Name,user.Username),
                         new Claim(ClaimTypes.Role,user.Role)
                     }),
-                    Expires = DateTime.UtcNow.AddSeconds(30),
+                    Expires = DateTime.UtcNow.AddSeconds(this._jwtSettings.expirationSeconds),
                     SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenkey), SecurityAlgorithms.HmacSha256)
                 };
 
@@ -58,7 +58,6 @@ namespace Unnati.Controllers
             {
                 return Unauthorized();
             }
-
         }
 
 
@@ -93,7 +92,7 @@ namespace Unnati.Controllers
                     {
                         var _newtoken = new JwtSecurityToken(
                             claims: principal.Claims.ToArray(),
-                            expires: DateTime.Now.AddSeconds(30),
+                            expires: DateTime.Now.AddSeconds(300),
                             signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this._jwtSettings.securitykey)),
                             SecurityAlgorithms.HmacSha256)
                             );

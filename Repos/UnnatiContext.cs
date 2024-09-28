@@ -18,6 +18,8 @@ namespace Unnati.Repos
         }
 
         public virtual DbSet<TblCustomer> TblCustomers { get; set; } = null!;
+        public virtual DbSet<TblProduct> TblProducts { get; set; } = null!;
+        public virtual DbSet<TblProductimage> TblProductimages { get; set; } = null!;
         public virtual DbSet<TblRefreshtoken> TblRefreshtokens { get; set; } = null!;
         public virtual DbSet<TblUser> TblUsers { get; set; } = null!;
 

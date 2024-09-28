@@ -67,6 +67,9 @@ try
     //Register 
     builder.Services.AddTransient<ICustomerService, CustomerService>();
     builder.Services.AddTransient<IRefreshHandler, RefreshHandler>();
+    builder.Services.AddTransient<IUserService, UserService>();
+    builder.Services.AddTransient<IEmailService, EmailService>();
+    builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
     //Database connection
     builder.Services.AddDbContext<UnnatiContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionString("sqlDBCon")));

@@ -18,9 +18,14 @@ namespace Unnati.Repos
         }
 
         public virtual DbSet<TblCustomer> TblCustomers { get; set; } = null!;
+        public virtual DbSet<TblOtpManager> TblOtpManagers { get; set; } = null!;
         public virtual DbSet<TblProduct> TblProducts { get; set; } = null!;
         public virtual DbSet<TblProductimage> TblProductimages { get; set; } = null!;
+        public virtual DbSet<TblPwdManger> TblPwdMangers { get; set; } = null!;
         public virtual DbSet<TblRefreshtoken> TblRefreshtokens { get; set; } = null!;
+        public virtual DbSet<TblRole> TblRoles { get; set; } = null!;
+        public virtual DbSet<TblRolepermission> TblRolepermissions { get; set; } = null!;
+        public virtual DbSet<TblTempuser> TblTempusers { get; set; } = null!;
         public virtual DbSet<TblUser> TblUsers { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

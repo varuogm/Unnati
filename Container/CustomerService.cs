@@ -5,20 +5,24 @@ using Unnati.Helper;
 using Unnati.Service;
 using Unnati.Repos.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components;
 
 namespace Unnati.Container
 {
+
+    [Route("[controller]")]
     public class CustomerService : ICustomerService
     {
         private readonly UnnatiContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<CustomerService> _logger;
 
-        public CustomerService(UnnatiContext context,IMapper mapper, ILogger<CustomerService> logger)
+        public CustomerService(UnnatiContext context, IMapper mapper, ILogger<CustomerService> logger)
         {
             _context = context;
             _mapper = mapper;
-            _logger = logger;   
+            _logger = logger;
         }
 
         public async Task<List<Customermodel>> GetAll()
@@ -26,7 +30,7 @@ namespace Unnati.Container
             List<Customermodel> result = new List<Customermodel>();
             var data = await this._context.TblCustomers.ToListAsync();
 
-            if(data != null)
+            if (data != null)
             {
                 result = this._mapper.Map<List<TblCustomer>, List<Customermodel>>(data);
             }
@@ -64,10 +68,11 @@ namespace Unnati.Container
             {
                 response.ResponseCode = 400;
                 response.Message = ex.Message;
-                _logger.LogError(ex.Message,ex);
+                _logger.LogError(ex.Message, ex);
             }
             return response;
         }
+
         public async Task<APIResponse> Remove(string code)
         {
             APIResponse response = new APIResponse();
@@ -98,7 +103,7 @@ namespace Unnati.Container
             return response;
         }
 
-        public async  Task<APIResponse> Update(Customermodel data, string code)
+        public async Task<APIResponse> Update(Customermodel data, string code)
         {
             APIResponse response = new APIResponse();
             try

@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System.Data;
+﻿using Microsoft.AspNetCore.Mvc;
 using Unnati.Repos.Models;
 using Unnati.Service;
 
@@ -15,6 +13,7 @@ namespace Unnati.Controllers
         {
             this.userService = service;
         }
+
 
         [HttpPost("userregisteration")]
         public async Task<IActionResult> UserRegisteration(UserRegister userRegister)
@@ -85,6 +84,5 @@ namespace Unnati.Controllers
             }
             return Ok(data);
         }
-    
     }
 }

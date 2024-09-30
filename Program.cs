@@ -122,6 +122,15 @@ try
             ValidateAudience = false,
             ClockSkew = TimeSpan.Zero
         };
+        // explicit forbiddon response
+        item.Events = new JwtBearerEvents
+        {
+            OnForbidden = context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return context.Response.WriteAsync("You are not authorized to access this resource.");
+            }
+        };
     });
 
     //Cors configure

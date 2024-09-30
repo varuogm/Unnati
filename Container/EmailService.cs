@@ -20,8 +20,7 @@ namespace Unnati.Container
         public async Task SendEmail(Mailrequest mailrequest)
         {
             var email = new MimeMessage();
-            //email.Sender = MailboxAddress.Parse(emailSettings.Username);
-            email.Sender = MailboxAddress.Parse("gouravmajee1999@gmail.com");
+            email.Sender = MailboxAddress.Parse(emailSettings.Username);
 
             email.To.Add(MailboxAddress.Parse(mailrequest.Email));
             email.Subject = mailrequest.Subject;

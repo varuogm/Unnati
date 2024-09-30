@@ -35,7 +35,7 @@ namespace Unnati.Helper
                 var user = await this._context.TblUsers.FirstOrDefaultAsync(item => item.Username == username && item.Password == password);
                 if (user != null)
                 {
-                    var claim = new[] { new Claim(ClaimTypes.Name, user.Username) };
+                    var claim = new[] { new Claim(ClaimTypes.Name, user.Username) , new Claim(ClaimTypes.Role, user.Role) };
                     var identity = new ClaimsIdentity(claim, Scheme.Name);
                     var principal = new ClaimsPrincipal(identity);
                     var ticket = new AuthenticationTicket(principal, Scheme.Name);

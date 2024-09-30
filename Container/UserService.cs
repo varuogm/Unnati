@@ -106,7 +106,7 @@ namespace Unnati.Container
 
 
                     response.Result = "User successfully registered for Id + "+ userid;
-                    response.Message = "OTP has been sent to "+ _useremail;
+                    response.Message = "OTP has been sent to "+ userRegister.Email;
                 }
             }
             catch (Exception ex)

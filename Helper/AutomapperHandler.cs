@@ -12,8 +12,10 @@ namespace Unnati.Helper
                 .ForMember(item => item.Statusname,
                             opt => opt.MapFrom(
                                     item => (item.IsActive != null && item.IsActive.Value) ? "Active" : "In active")).ReverseMap();
-            //CreateMap<TblUser, UserModel>().ForMember(item => item.Statusname, opt => opt.MapFrom(
-            //    item => (item.Isactive != null && item.Isactive.Value) ? "Active" : "In active")).ReverseMap();
+            CreateMap<TblUser, UserModel>()
+                .ForMember(item => item.Statusname,
+                            opt => opt.MapFrom(
+                                    item => (item.Isactive != null && item.Isactive.Value) ? "Active" : "In active")).ReverseMap();
         }
     }
 }

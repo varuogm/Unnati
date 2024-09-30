@@ -5,9 +5,8 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Unnati.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "admin")]
     [ApiController]
-
     [Route("api/[controller]")]
     public class CustomerController : ControllerBase
     {
@@ -22,6 +21,7 @@ namespace Unnati.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "admin")]
         //[AllowAnonymous]
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client)]
         public async Task<IActionResult> Get()

@@ -35,7 +35,7 @@ namespace Unnati.Controllers
         }
 
         [HttpGet("Getbycode")]
-        [ResponseCache(Duration = 30, VaryByQueryKeys = new[] { "id" })]
+        //[ResponseCache/*(*/Duration = /*30, VaryByQueryKeys = new[] { "id" }*/)]
         public async Task<IActionResult> Getbycode(string code)
         {
             _logger.LogInformation("Inside Get by code");

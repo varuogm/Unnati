@@ -13,12 +13,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Serilog.Sinks.Seq;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning).Enrich.FromLogContext()
     .WriteTo.Console()
     .WriteTo.File(@"C:\Users\gourav\source\repos\Unnati\Logs\LogFile.txt")
+    .WriteTo.Seq("http://localhost:5341")
     .CreateLogger();
 
 try
@@ -148,6 +150,13 @@ try
         AllowAnyHeader();
     }));
 
+    //SEQ dashbaord setup
+    var _seqSettings = builder.Configuration.GetSection("Seq");
+    builder.Services.AddLogging(item =>
+    {
+        item.AddSeq(_seqSettings);
+    });
+
     var app = builder.Build();
 
     // Configure the HTTP request pipeline.
@@ -157,6 +166,8 @@ try
     app.UseSwaggerUI();
     //}
 
+
+    
     app.UseHttpsRedirection();
 
     app.UseStaticFiles();

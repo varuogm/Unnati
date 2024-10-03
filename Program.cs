@@ -14,6 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Serilog.Sinks.Seq;
+using QuestPDF.Infrastructure;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -28,6 +29,7 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     // Add services to the container.
+    QuestPDF.Settings.License = LicenseType.Community;
 
     //Caching 
     builder.Services.AddResponseCaching();
@@ -71,6 +73,7 @@ try
     builder.Services.AddTransient<IRefreshHandler, RefreshHandler>();
     builder.Services.AddTransient<IUserService, UserService>();
     builder.Services.AddTransient<IEmailService, EmailService>();
+    builder.Services.AddScoped<IPDFGeneratorService, PDFGeneratorService>();
     builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
     //Database connection
@@ -96,10 +99,7 @@ try
     builder.Services.AddInMemoryRateLimiting();
 
     //for Serilog
-    builder.Host.ConfigureAppConfiguration((hostingContext, config) =>
-    {
-        config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-    });
+    builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
     builder.Host.UseSerilog();
 

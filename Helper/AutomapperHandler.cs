@@ -16,6 +16,8 @@ namespace Unnati.Helper
                 .ForMember(item => item.Statusname,
                             opt => opt.MapFrom(
                                     item => (item.Isactive != null && item.Isactive.Value) ? "Active" : "In active")).ReverseMap();
+
+            CreateMap<TblProduct, Products>().ReverseMap();
         }
     }
 }

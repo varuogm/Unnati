@@ -13,8 +13,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Serilog.Sinks.Seq;
 using QuestPDF.Infrastructure;
+using Microsoft.Extensions.Options;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -74,6 +74,9 @@ try
     builder.Services.AddTransient<IUserService, UserService>();
     builder.Services.AddTransient<IEmailService, EmailService>();
     builder.Services.AddScoped<IPDFGeneratorService, PDFGeneratorService>();
+    builder.Services.AddScoped<IExternalAPIService, ExternalAPIService>();
+    builder.Services.Configure<CatSettings>(builder.Configuration.GetSection("ExternalAPISecrets"));
+
     builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
     //Database connection
@@ -135,6 +138,16 @@ try
         };
     });
 
+    //Named HttpCLient 
+    var _catsetting = builder.Configuration.GetSection("ExteralAPI").GetSection("CatSettings");
+    builder.Services.AddHttpClient("cat", (serviceProvider, client) =>
+    {
+        var settings = serviceProvider.GetRequiredService<IOptions<CatSettings>>();
+        client.DefaultRequestHeaders.Add("x-api-key", settings.Value.CatAPI);
+        client.BaseAddress = new Uri(settings.Value.CATWebsite);
+    });
+
+
     //Cors configure
     builder.Services.AddCors(p => p.AddPolicy("corspolicy1", build =>
         {
@@ -157,6 +170,8 @@ try
         item.AddSeq(_seqSettings);
     });
 
+    builder.Services.AddHealthChecks();
+
     var app = builder.Build();
 
     // Configure the HTTP request pipeline.
@@ -165,7 +180,6 @@ try
     app.UseSwagger();
     app.UseSwaggerUI();
     //}
-
 
     
     app.UseHttpsRedirection();
@@ -179,6 +193,8 @@ try
     app.UseAuthentication();
 
     app.UseAuthorization();
+
+    app.MapHealthChecks("/health");
 
     app.MapControllers();
 

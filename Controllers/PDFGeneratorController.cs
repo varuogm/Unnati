@@ -9,10 +9,12 @@ namespace Unnati.Controllers
     public class PDFsController : ControllerBase
     {
         private readonly IPDFGeneratorService _pdfService;
+        private readonly ILogger<PDFsController> _logger;
 
-        public PDFsController(IPDFGeneratorService pdf)
+        public PDFsController(IPDFGeneratorService pdf, ILogger<PDFsController> logger)
         {
             _pdfService = pdf;
+            _logger = logger;
         }
 
         [HttpGet]
